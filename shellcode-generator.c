@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	FILE *in_file;
 	FILE *out_file;
 
-	while ((opt = getopt(argc, argv, "f:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "hf:o:")) != -1) {
 		switch (opt) {
 		case 'f' :
 			in_path = optarg;

@@ -4,7 +4,7 @@ shellcode-generator
 Tool for preparing shellcodes. Unfortunately, at the moment it only allows
 for converting raw binary data to ANSI-C quoted form.
 
-'$ ./shellcode-generator -h
+`$ ./shellcode-generator -h
 Usage: ./shellcode-generator [options]
 -f <File> Use File as an input instead of stdin
 -o <File> Redirect output to File
@@ -17,4 +17,5 @@ $ hd file
 00000021
 
 $ ./shellcode-generator -f ./file 
-\x41\x20\x73\x68\x6f\x72\x74\x20\x66\x69\x6c\x65\x20\x66\x6f\x72\x20\x64\x65\x6d\x6f\x6e\x73\x74\x72\x61\x74\x69\x6f\x6e\x2e\xa\xa'
+\x41\x20\x73\x68\x6f\x72\x74\x20\x66\x69\x6c\x65\x20\x66\x6f\x72\x20\x64\x65\x6d\x6f\x6e\x73\x74\x72\x61\x74\x69\x6f\x6e\x2e\xa\xa`
+

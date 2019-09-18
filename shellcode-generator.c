@@ -1,41 +1,67 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <inttypes.h>
 
-#define BUFFER_SIZE 4096
+#define MAX_LINE 128
 
 void usage(char *progname, int exit_status)
 {
 	printf("Usage: %s [options]\n", progname);
-	puts("-f <File> Use File as an input instead of stdin");
-	puts("-o <File> Redirect output to File");
+	puts("-f <in_file> Use in_file as an input instead of stdin");
+	puts("-o <out_file> Redirect output to out_file");
 	puts("-h Prints this help and exits");
 	exit(exit_status);
 }
 
-void print_string(FILE *in_file, FILE *out_file)
+void get_opcode(char *buf)
 {
-	uint8_t buf[BUFFER_SIZE];
-	size_t read;
-	bool end = false;
-	uint8_t c;
-	while (!end) {
-		read = fread((void *)buf, sizeof(int8_t), BUFFER_SIZE, in_file);
-		if (read < sizeof(int8_t) * BUFFER_SIZE) {
+	if (buf[0] != ' ') {
+		buf[0] = '\0';
+		return;
+	}
+	int i = 1, j = 0;
+	while (i < MAX_LINE && buf[i] != '\0' && buf[i] != '\t')
+		i++;
+	if (buf[i] == '\0') {
+		buf[0] = '\0';
+		return;
+	}
+	i++;
+	while (i+1 < MAX_LINE && !(isspace(buf[i]) && isspace(buf[i+1]))) {
+		if (isspace(buf[i])) {
+			i++;
+		} else {
+			buf[j] = buf[i];
+			j++;
+			i++;
+		}
+	}
+	buf[j] = '\0';
+}
+
+void print_output(FILE *in_file, FILE *out_file)
+{
+	char buf[MAX_LINE];
+	char *s;
+	int i;
+	while (1) {
+		s = fgets(buf, MAX_LINE, in_file);
+		if (s != buf) {
 			if (ferror(in_file)) {
 				puts("Error occured while reading input\n");
 				fclose(in_file);
 				fclose(out_file);
 				exit(EXIT_FAILURE);
 			} else {
-				end = true;
+				break;
 			}
 		}
-		for (unsigned int i = 0; i < read; i++) {
-			c = buf[i];
-			fprintf(out_file, "\\x%" PRIx8 , c);
+		get_opcode(buf);
+		i = 0;
+		while (i+1 < MAX_LINE && buf[i] != '\0') {
+			fprintf(out_file, "\\x%c%c", buf[i], buf[i+1]);
+			i += 2;
 		}
 	}
 }
@@ -47,6 +73,7 @@ int main(int argc, char *argv[])
 	char *out_path = NULL;
 	FILE *in_file;
 	FILE *out_file;
+	opterr = 0;
 
 	while ((opt = getopt(argc, argv, "hf:o:")) != -1) {
 		switch (opt) {
@@ -63,6 +90,8 @@ int main(int argc, char *argv[])
 			usage(argv[0], EXIT_FAILURE);
 		}
 	}
+	if (argv[optind])
+		usage(argv[0], EXIT_FAILURE);
 
 	if ((in_file = fopen(in_path, "r")) == NULL)
 		in_file = stdin;
@@ -74,7 +103,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-	print_string(in_file, out_file);
+	print_output(in_file, out_file);
 	fclose(in_file);
 	fclose(out_file);
 	return EXIT_SUCCESS;

